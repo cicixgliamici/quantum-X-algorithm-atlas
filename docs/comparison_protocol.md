@@ -179,9 +179,9 @@ evidence of superiority over the best available classical method.
 | IID estimator and finite-shot IQAE calibration | Implemented |
 | Single-run JSON, seeds, environment and core logical resources | Implemented |
 | Accuracy/confidence/cost comparison contract | Specified by this protocol |
-| Full grid and replication runner | Not yet implemented |
-| Classical Hoeffding intervals | Implemented in the discrete runner |
-| Coverage/RMSE aggregation and Wilson intervals | Not yet implemented |
+| Full grid and replication runner | Implemented |
+| Classical Hoeffding intervals | Implemented in replicated and discrete runners |
+| Coverage/RMSE aggregation and Wilson intervals | Implemented |
 | Separate A/A-inverse and weighted gate totals | Implemented |
 | Discrete P/f preparation | Implemented |
 | Preparation-cost study across input sizes | Implemented |

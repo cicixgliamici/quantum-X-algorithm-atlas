@@ -109,7 +109,10 @@ def estimate_amplitude(
         raise ValueError("require 0 < epsilon_target <= 0.5 and 0 < alpha < 1")
     # A persistent stream avoids resetting identical measurement draws each round.
     sampler = StatevectorSampler(default_shots=int(shots), seed=np.random.default_rng(seed))
-    algorithm = IterativeAmplitudeEstimation(epsilon_target, alpha, sampler=sampler)
+    # Explicit settings make the replicated protocol independent of changing defaults.
+    algorithm = IterativeAmplitudeEstimation(
+        epsilon_target, alpha, confint_method="beta", min_ratio=2, sampler=sampler
+    )
     started = perf_counter()
     result = algorithm.estimate(problem)
     elapsed = perf_counter() - started

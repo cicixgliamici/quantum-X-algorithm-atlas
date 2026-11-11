@@ -20,10 +20,16 @@ jobs:
       - run: qaa-benchmark --output results/smoke.json
       - run: python -m qaa.benchmarks.discrete_expectation --output results/discrete.json
       - run: python -m qaa.benchmarks.oracle_cost --sizes 2 4 --powers 0 1 --with-estimation --output results/oracle-cost.json
+      - run: python -m qaa.benchmarks.statistical_study run --probabilities 0.3 --epsilons 0.1 --replications 2 --output results/statistical-pilot
+      - run: python -m qaa.benchmarks.statistical_study analyze results/statistical-pilot
       - uses: actions/upload-artifact@v4
         with:
           name: benchmark-${{ matrix.python }}
-          path: results/*.json
+          # Preserve the source inventory's hidden configuration files.
+          include-hidden-files: true
+          path: |
+            results/*.json
+            results/statistical-pilot/
   classical-only:
     runs-on: ubuntu-latest
     steps:
@@ -36,3 +42,4 @@ jobs:
       - run: qaa-benchmark --output results/classical.json
       - run: python -m qaa.benchmarks.discrete_expectation --output results/discrete-classical.json
       - run: python -m qaa.benchmarks.oracle_cost --sizes 2 --output results/oracle-unavailable.json
+      - run: python -m qaa.benchmarks.statistical_study run --probabilities 0.3 --epsilons 0.1 --replications 2 --classical-only --output results/statistical-classical

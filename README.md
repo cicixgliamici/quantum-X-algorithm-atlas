@@ -131,3 +131,10 @@ The [oracle-cost study](docs/oracle_cost.md) inspects loading, function encoding
 ```powershell
 python -m qaa.benchmarks.oracle_cost --with-estimation --output results/oracle-cost.json
 ```
+
+The [replicated study](docs/statistical_study.md) implements the 7200-trial protocol with independent seeds, retained failures, raw JSONL records, source snapshots, RMSE, success/coverage Wilson intervals and cost distributions. Run status lives in each manifest.
+
+```powershell
+python -m qaa.benchmarks.statistical_study run --output results/statistical-study
+python -m qaa.benchmarks.statistical_study analyze results/statistical-study
+```

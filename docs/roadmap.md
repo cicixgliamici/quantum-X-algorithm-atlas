@@ -27,3 +27,5 @@ The [comparison protocol](comparison_protocol.md) defines matched absolute-error
 The [discrete expectation case study](discrete_expectation.md) adds a four-scenario synthetic payoff with exact expectation 13. Its quantum circuit encodes individual distribution/function entries; the exact weighted mean is only a validation reference.
 
 The [oracle-cost study](oracle_cost.md) inspects loading, function encoding, A, A inverse, reflections and Grover circuits as table sizes grow. Logical gate totals are weighted by shots, with construction and inspection times separated.
+
+The [replicated study](statistical_study.md) implements the 7200-trial protocol with independent seeds, retained failures, raw JSONL records, source snapshots, RMSE, success/coverage Wilson intervals and cost distributions. Run status lives in each manifest.
