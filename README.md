@@ -8,7 +8,8 @@ An asymptotic query advantage does not by itself establish a practical speedup.
 ## MVP 0: one case study
 
 Implemented: independent Monte Carlo for bounded observations, a known Bernoulli
-calibration problem, and genuine **Iterative Quantum Amplitude Estimation (IQAE)**
+calibration problem, a finite-distribution expectation with coherent function
+encoding, and genuine **Iterative Quantum Amplitude Estimation (IQAE)**
 using Qiskit Algorithms and its V2 `StatevectorSampler`. Tests, JSON benchmarks
 and GitHub Actions accompany the code. The other nine algorithm families remain
 research directions; no placeholder implementations imply completed work.
@@ -20,7 +21,7 @@ Requires Python 3.11+ (CI covers 3.11–3.14). From the repository root, on Powe
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -e '.[dev,quantum]'
+python -m pip install -e '.[dev,quantum,report]'
 ```
 
 On Linux/macOS activate with `source .venv/bin/activate` instead. Activation is
@@ -29,6 +30,8 @@ The base install `python -m pip install -e '.[dev]'` needs only NumPy at runtime
 quantum tests skip and the benchmark reports `unavailable` without the quantum
 extra. It never substitutes ordinary measurements and labels them as QAE.
 Statevector simulation is supplied by Qiskit itself, so Aer is unnecessary.
+The optional `report` extra adds Matplotlib for static scientific figures. Saved
+studies can be reported with `.[dev,report]` without installing quantum packages.
 
 ## Reproduce and verify
 
@@ -40,6 +43,11 @@ python experiments/monte_carlo_demo.py
 qaa-benchmark --seed 42 --sample-sizes 100 1000 10000 --output results/monte_carlo.json
 qaa-benchmark --classical-only --output results/classical.json
 python -m qaa.benchmarks.monte_carlo --probability 0.3 --shots 256 --epsilon 0.03
+python -m qaa.benchmarks.discrete_expectation --epsilon 0.03 --alpha 0.05 --output results/discrete-expectation.json
+python -m qaa.benchmarks.oracle_cost --with-estimation --output results/oracle-cost.json
+python -m qaa.benchmarks.statistical_study run --output results/statistical-study
+python -m qaa.benchmarks.statistical_study analyze results/statistical-study
+python -m qaa.benchmarks.scientific_report results/statistical-study --oracle-study results/oracle-cost.json --output results/scientific-report
 ```
 
 The benchmark records Python/package/platform versions, all seeds, estimates,
@@ -89,15 +97,39 @@ There is no shared abstraction that equates classical samples with oracle querie
 See [architecture](docs/architecture.md), [mathematical foundations](docs/mathematical_background.md)
 and the [ten-algorithm roadmap](docs/roadmap.md).
 
+The [Monte Carlo / IQAE comparison protocol](docs/comparison_protocol.md) specifies
+matched accuracy and confidence targets, classical sample budgets, quantum access
+assumptions and resource accounting. The [replicated study](docs/statistical_study.md)
+implements its 7200-trial design with raw JSONL records, RMSE, success, coverage,
+Wilson intervals and cost distributions. Each run archives its source and environment;
+execution status lives in its manifest. The original benchmark remains single-run.
+
+The [discrete expectation case study](docs/discrete_expectation.md) adds a synthetic
+four-scenario payoff (exact expectation 13), explicit distribution/function encoding,
+and a single-run comparison with matched Hoeffding/IQAE accuracy targets.
+
+The [oracle-cost study](docs/oracle_cost.md) profiles loading, function encoding,
+preparation/inverse, reflections and Grover gates as table sizes grow. Fixed-power
+probes separate size effects from IQAE's adaptive workload; optional estimation
+records shot-weighted logical gate costs and separate timing phases.
+
+The [scientific report generator](docs/scientific_report.md) produces standalone
+HTML, Markdown, PNG/SVG figures and numerical tables from verified saved data.
+It records reporting provenance separately and leaves the original study unchanged.
+Study and report output directories must be new; use a different `--output` for repeats.
+
 ## Scientific limits
 
 The Bernoulli probability is **known and encoded deliberately**: this tests state
-preparation and IQAE, not the discovery of an unknown probability. Both methods
-solve a synthetic calibration problem with an analytical answer. Metropolis–Hastings
+preparation and IQAE, not the discovery of an unknown probability. The discrete
+extension encodes individual probabilities and function values instead of the
+weighted mean; exact summation supplies an independent validation reference.
+Both examples use known synthetic inputs. Metropolis–Hastings
 and correlated MCMC are outside MVP 0.
 
 Quantum timings cover ideal finite-shot simulation and estimation, excluding
-post-run resource inspection. They are not hardware timings. Classical timings
+post-run resource inspection, which now has its own timer. Discrete estimates
+also expose construction and total wrapper time. These are not hardware timings. Classical timings
 cover sampling and statistical reductions. These timings cannot establish an
 end-to-end quantum advantage. State preparation, inverse preparation, success
 reflections, noise, compilation and hardware access require separate cost models.
@@ -115,26 +147,3 @@ The implementation follows the official
 and [result contract](https://qiskit-community.github.io/qiskit-algorithms/stubs/qiskit_algorithms.IterativeAmplitudeEstimationResult.html).
 Future work should evaluate nontrivial loading/oracles and repeated-trial resource
 studies before discussing practical advantage. Licensed under [MIT](LICENSE).
-
-## Research milestones
-
-The [comparison protocol](docs/comparison_protocol.md) defines matched absolute-error and confidence targets, access assumptions, cost units and a prespecified replication design.
-
-The [discrete expectation case study](docs/discrete_expectation.md) adds a four-scenario synthetic payoff with exact expectation 13. Its quantum circuit encodes individual distribution/function entries; the exact weighted mean is only a validation reference.
-
-```powershell
-python -m qaa.benchmarks.discrete_expectation --output results/discrete.json
-```
-
-The [oracle-cost study](docs/oracle_cost.md) inspects loading, function encoding, A, A inverse, reflections and Grover circuits as table sizes grow. Logical gate totals are weighted by shots, with construction and inspection times separated.
-
-```powershell
-python -m qaa.benchmarks.oracle_cost --with-estimation --output results/oracle-cost.json
-```
-
-The [replicated study](docs/statistical_study.md) implements the 7200-trial protocol with independent seeds, retained failures, raw JSONL records, source snapshots, RMSE, success/coverage Wilson intervals and cost distributions. Run status lives in each manifest.
-
-```powershell
-python -m qaa.benchmarks.statistical_study run --output results/statistical-study
-python -m qaa.benchmarks.statistical_study analyze results/statistical-study
-```

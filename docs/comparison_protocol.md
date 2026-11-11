@@ -1,6 +1,9 @@
 # Monte Carlo / IQAE comparison protocol
 
-Protocol ID: `mc-iqae-v1`. The design below fixes the comparison before further experiments. Current implementation support is listed in section 7.
+Protocol ID: `mc-iqae-v1`. Status: the replicated runner and analysis are implemented;
+each run's manifest records its execution status. The original Bernoulli benchmark provides single-run calibration; the discrete
+extension below adds a separate single-run expectation comparison.
+This document fixes the scientific contract before adding experiments.
 
 ## 1. Research question and scope
 
@@ -177,20 +180,24 @@ evidence of superiority over the best available classical method.
 | Capability | Repository status |
 | --- | --- |
 | IID estimator and finite-shot IQAE calibration | Implemented |
-| Single-run JSON, seeds, environment and core logical resources | Implemented |
+| Single-run JSON, seeds, environment, core logical resources | Implemented |
 | Accuracy/confidence/cost comparison contract | Specified by this protocol |
-| Full grid and replication runner | Implemented |
-| Classical Hoeffding intervals | Implemented in replicated and discrete runners |
-| Coverage/RMSE aggregation and Wilson intervals | Implemented |
-| Separate A/A-inverse and weighted gate totals | Implemented |
-| Discrete P/f preparation | Implemented |
-| Preparation-cost study across input sizes | Implemented |
-| Generated scientific report and plots | Future stage |
+| Full grid and replication runner | Implemented in the statistical-study CLI |
+| Classical Hoeffding intervals | Implemented in replicated and discrete benchmarks; not the original Bernoulli CLI |
+| Coverage/RMSE aggregation and Wilson uncertainty intervals | Implemented with raw-record reanalysis |
+| Generated scientific report and plots | Implemented from verified saved artifacts |
+| Separate A/A-inverse and weighted gate totals | Implemented for IQAE and fixed-power oracle probes |
+| Phase-level timing | Implemented for discrete construction/estimation/inspection/total; original Bernoulli timer retains its boundary |
+| Nontrivial discrete P/f preparation | Implemented; see the discrete case study |
+| Loading-cost study across problem sizes | Implemented for a dense table family; see the oracle-cost study |
 
 The full study is complete only when the grid is executed without selective
 reruns, raw records and failures are retained, analysis is reproducible, accounting
 identities are checked, and the report states the access assumptions and remaining
 limits. Existing seeded correctness tests do not establish full-study coverage.
+
+See the [replicated study](statistical_study.md) for commands, artifacts, provenance,
+failure handling and denominator definitions. Modified settings are labeled pilots.
 
 ## 8. Runnable calibration check
 
@@ -209,3 +216,11 @@ does not mean the full study ran or that every random run must meet the target.
 See [mathematical background](mathematical_background.md) for the derivations and
 primary algorithm references, and [architecture](architecture.md) for implemented
 module boundaries.
+
+The [discrete expectation extension](discrete_expectation.md) implements a second
+single-run calibration using the same accuracy/confidence contract. It does not
+change or execute the prespecified Bernoulli grid above.
+
+The [oracle-cost study](oracle_cost.md) adds fixed-power size comparisons and
+optional single-run IQAE profiling. It has a separate design and seed mapping;
+neither its probes nor its estimation runs count as executions of this grid.

@@ -4,7 +4,8 @@ The phase-4 runner implements protocol `mc-iqae-v1`: independent replications,
 accuracy and confidence diagnostics, and separate distributions of logical costs.
 The full default design has 7200 estimation attempts. Execution status and measured
 results live in the generated manifest and summary, not in a hard-coded success
-claim in this document. Plots and a generated scientific report are phase 5.
+claim in this document. The [phase-5 report generator](scientific_report.md) creates
+plots and a scientific report from the verified archive without new estimations.
 
 ## Frozen design
 

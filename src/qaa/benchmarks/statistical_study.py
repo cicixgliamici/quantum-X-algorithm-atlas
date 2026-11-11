@@ -161,8 +161,8 @@ def initial_manifest(design: StudyDesign, provenance: dict) -> dict:
     }
 
 
-def analyze_study(directory: Path) -> dict:
-    """Rebuild summaries from the frozen design and raw records without running estimators."""
+def read_study(directory: Path) -> tuple[dict, dict]:
+    """Verify and recompute a study in memory without modifying its saved artifacts."""
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
     verify_source_archive(directory, manifest["provenance"]["source_sha256"])
     settings = dict(manifest["design"])
@@ -182,6 +182,12 @@ def analyze_study(directory: Path) -> dict:
         "trials_sha256": digest,
         **summarize_records(design, records),
     }
+    return manifest, summary
+
+
+def analyze_study(directory: Path) -> dict:
+    """Rebuild saved summaries from raw records without running estimators."""
+    _, summary = read_study(directory)
     write_json(directory / "summary.json", summary)
     return summary
 

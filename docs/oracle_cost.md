@@ -143,4 +143,9 @@ advantage over that baseline or over classical Monte Carlo. Any future claim
 must account for classical input access, quantum loading/reflections, error
 correction, output requirements and the actual hardware cost model.
 
-Repeated-trial analysis and a generated report remain subsequent stages.
+This implements the preparation-cost stage of the roadmap. The
+[replicated Bernoulli study](statistical_study.md) now analyzes accuracy/coverage
+and logical cost distributions. The [scientific report generator](scientific_report.md)
+can include this oracle study as a separate section and static figure.
+See the [comparison protocol](comparison_protocol.md) and
+[discrete expectation case study](discrete_expectation.md).

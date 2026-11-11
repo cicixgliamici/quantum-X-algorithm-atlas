@@ -119,4 +119,7 @@ resources as m grows for dense synthetic tables.
 
 The new runner is one calibration per method, with its own recorded seed mapping.
 It does not execute or alter the Bernoulli grid in protocol `mc-iqae-v1`.
-Repeated-trial accuracy analysis and a generated report remain future work.
+The [replicated Bernoulli study](statistical_study.md) now supplies repeated-trial
+accuracy analysis for the protocol calibration grid. Replicated discrete-payoff
+coverage remains a subsequent extension. The [scientific report generator](scientific_report.md)
+now presents the Bernoulli grid and optional separate oracle-cost study.

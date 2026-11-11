@@ -5,7 +5,7 @@ not promises that useful quantum acceleration exists for every family.
 
 | Classical family | Status and research question |
 | --- | --- |
-| Monte Carlo / Metropolis | IID Monte Carlo, Bernoulli IQAE and discrete expectations; MCMC deferred |
+| Monte Carlo / Metropolis | IID Monte Carlo, Bernoulli IQAE and discrete expectation encoding; MCMC deferred |
 | Simplex | Deferred: compare optimization models and input assumptions |
 | Krylov subspace methods | Deferred: investigate linear-system access and output costs |
 | Matrix decompositions | Deferred: distinguish classical outputs from quantum states |
@@ -16,16 +16,28 @@ not promises that useful quantum acceleration exists for every family.
 | Integer relation detection | Deferred: identify a defensible quantum research question |
 | Fast Multipole Method | Deferred: compare approximation, geometry and data-loading costs |
 
-Next scientific milestone: a nontrivial bounded expectation with explicit coherent
-state preparation and function evaluation, then repeated-trial accuracy and query
-budgets. Hardware/noise studies should follow a defensible cost model. Each later
+The [comparison protocol](comparison_protocol.md) now fixes the estimation task,
+accuracy/confidence contract, cost ledger and replicated calibration design.
+The statistical-study runner and raw-record reanalysis implement this design.
+
+The [discrete expectation case study](discrete_expectation.md) now prepares a
+nontrivial bounded function and finite distribution coherently, with a direct-sum
+validation reference and a matched single-run comparison.
+
+The [oracle-cost study](oracle_cost.md) now measures preparation/inverse, function
+encoding, reflections and full Grover costs across increasing table sizes,
+including optional shot-weighted IQAE workloads.
+
+The [replicated study](statistical_study.md) now implements independent Bernoulli
+replications, RMSE, empirical success/coverage with Wilson intervals, cost
+distributions, retained failures and source-linked raw records.
+
+The [scientific report generator](scientific_report.md) now exports English HTML
+and Markdown, standalone PNG/SVG figures, numerical tables and reporting provenance
+from verified study artifacts, with optional separate oracle-cost results.
+
+Next scientific questions include replicated discrete-payoff coverage and
+structured reversible function evaluation. Hardware/noise studies should follow a
+defensible cost model. Each later
 case study needs classical references, analytical examples and documented limits
 before generalized framework abstractions are introduced.
-
-The [comparison protocol](comparison_protocol.md) defines matched absolute-error and confidence targets, access assumptions, cost units and a prespecified replication design.
-
-The [discrete expectation case study](discrete_expectation.md) adds a four-scenario synthetic payoff with exact expectation 13. Its quantum circuit encodes individual distribution/function entries; the exact weighted mean is only a validation reference.
-
-The [oracle-cost study](oracle_cost.md) inspects loading, function encoding, A, A inverse, reflections and Grover circuits as table sizes grow. Logical gate totals are weighted by shots, with construction and inspection times separated.
-
-The [replicated study](statistical_study.md) implements the 7200-trial protocol with independent seeds, retained failures, raw JSONL records, source snapshots, RMSE, success/coverage Wilson intervals and cost distributions. Run status lives in each manifest.

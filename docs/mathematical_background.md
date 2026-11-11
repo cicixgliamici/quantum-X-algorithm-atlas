@@ -1,5 +1,10 @@
 # Monte Carlo and amplitude estimation
 
+The [comparison protocol](comparison_protocol.md) turns these foundations into
+explicit accuracy targets, stopping rules, resource definitions and reporting
+requirements. The replicated runner implements the design; each run's manifest
+and summary record actual completion and measured results.
+
 ## Independent Monte Carlo
 
 Let Y=f(X) be bounded in [a,b], with independent, identically distributed draws
@@ -32,6 +37,12 @@ does not investigate those costs. It encodes known p; it learns no unknown data.
 
 ## Resource accounting
 
+For a general finite distribution, the [discrete expectation case study](discrete_expectation.md)
+prepares the index distribution and an objective rotation for each normalized
+function value g_i. The objective probability is sum_i p_i*g_i, and the original
+expectation is a+(b-a)*sum_i p_i*g_i. Unlike the Bernoulli calibration, this circuit
+is built from individual input table entries, without using the weighted mean.
+
 For an executed circuit A followed by Q^k and s shots, the logical Grover cost is
 s*k. The total is sum_j s*k_j. The modeled total count of A or A^-1 calls is
 sum_j s*(2*k_j+1); the initial A is counted even when k=0. This is an abstract
@@ -45,6 +56,12 @@ shots represent. `state_preparation_calls` includes forward and inverse calls.
 Logical u/cx counts depend on decomposition and are not calibrated hardware costs.
 Neither N, shots nor Grover queries are interchangeable units of runtime.
 
+If S=sum_j s_j and G=sum_j s_j*k_j, forward A calls are S+G and inverse
+calls are G. For per-circuit decomposed gate counts c_j, the logical gate
+application total is sum_j s_j*c_j. The [oracle-cost study](oracle_cost.md)
+measures these circuit costs and the individual loading/function/reflection
+components, rather than treating G alone as an execution-time proxy.
+
 IQAE's alpha controls its nominal failure probability; its interval and error
 target are probabilistic statements, not guarantees for every seed. Deterministic
 tests validate selected calibration runs and accounting, not universal coverage.
@@ -54,9 +71,3 @@ tests validate selected calibration runs and accounting, not universal coverage.
 - Brassard et al., [Quantum Amplitude Amplification and Estimation](https://arxiv.org/abs/quant-ph/0005055).
 - Grinko et al., [Iterative Quantum Amplitude Estimation](https://arxiv.org/abs/1912.05559).
 - [Qiskit IQAE implementation and documentation](https://qiskit-community.github.io/qiskit-algorithms/_modules/qiskit_algorithms/amplitude_estimators/iae.html).
-
-The [comparison protocol](comparison_protocol.md) fixes matched precision and confidence targets, stopping rules and distinct resource units.
-
-For discrete inputs, g_i=(f_i-a)/(b-a). Preparing each sqrt(p_i) and an objective rotation for g_i makes success probability sum_i p_i*g_i; rescaling recovers the original expectation. The circuit never reads the weighted mean.
-
-If S is the number of shots and G the logical Grover count, forward A calls are S+G and inverse calls are G. Logical gate applications sum decomposed circuit gate counts weighted by shots; none of these counts is hardware runtime.
