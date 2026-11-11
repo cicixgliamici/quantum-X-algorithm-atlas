@@ -13,7 +13,7 @@ quantum advantage would additionally require a hardware and data-loading cost
 model; it cannot be inferred from this simulation.
 
 The first stage uses known Bernoulli probabilities to validate the comparison
-procedure. A later extension will encode a nontrivial finite expectation. Neither
+procedure. The discrete extension now encodes a nontrivial finite expectation. Neither
 stage includes MCMC, noise, error correction or the remaining algorithm families.
 
 ## 2. Common estimation task
@@ -180,10 +180,10 @@ evidence of superiority over the best available classical method.
 | Single-run JSON, seeds, environment and core logical resources | Implemented |
 | Accuracy/confidence/cost comparison contract | Specified by this protocol |
 | Full grid and replication runner | Not yet implemented |
-| Classical Hoeffding intervals | Specified; not yet exported |
+| Classical Hoeffding intervals | Implemented in the discrete runner |
 | Coverage/RMSE aggregation and Wilson intervals | Not yet implemented |
 | Separate A/A-inverse and weighted gate totals | Specified; not yet exported |
-| Discrete P/f preparation | Future extension |
+| Discrete P/f preparation | Implemented |
 | Preparation-cost study across input sizes | Future extension |
 | Generated scientific report and plots | Future stage |
 

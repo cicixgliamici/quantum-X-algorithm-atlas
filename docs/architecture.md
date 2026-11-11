@@ -31,3 +31,5 @@ configured here; its remote execution is distinct from local verification.
 Extension rule: introduce a new module only when the next case study needs it.
 Share result fields or interfaces only after their mathematical meanings match.
 Avoid forcing matrix algorithms or compilers into a Monte Carlo-shaped API.
+
+The immutable `problems/discrete.py` tables are shared by the classical sampler and the quantum discrete adapter. A shared IQAE runner preserves normalized diagnostics while the discrete result restores original units.

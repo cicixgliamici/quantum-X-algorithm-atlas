@@ -5,7 +5,7 @@ not promises that useful quantum acceleration exists for every family.
 
 | Classical family | Status and research question |
 | --- | --- |
-| Monte Carlo / Metropolis | MVP: IID Monte Carlo and Bernoulli IQAE; MCMC deferred |
+| Monte Carlo / Metropolis | IID Monte Carlo, Bernoulli IQAE and discrete expectations; MCMC deferred |
 | Simplex | Deferred: compare optimization models and input assumptions |
 | Krylov subspace methods | Deferred: investigate linear-system access and output costs |
 | Matrix decompositions | Deferred: distinguish classical outputs from quantum states |
@@ -23,3 +23,5 @@ case study needs classical references, analytical examples and documented limits
 before generalized framework abstractions are introduced.
 
 The [comparison protocol](comparison_protocol.md) defines matched absolute-error and confidence targets, access assumptions, cost units and a prespecified replication design.
+
+The [discrete expectation case study](discrete_expectation.md) adds a four-scenario synthetic payoff with exact expectation 13. Its quantum circuit encodes individual distribution/function entries; the exact weighted mean is only a validation reference.

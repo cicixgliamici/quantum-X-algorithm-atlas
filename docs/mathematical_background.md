@@ -56,3 +56,5 @@ tests validate selected calibration runs and accounting, not universal coverage.
 - [Qiskit IQAE implementation and documentation](https://qiskit-community.github.io/qiskit-algorithms/_modules/qiskit_algorithms/amplitude_estimators/iae.html).
 
 The [comparison protocol](comparison_protocol.md) fixes matched precision and confidence targets, stopping rules and distinct resource units.
+
+For discrete inputs, g_i=(f_i-a)/(b-a). Preparing each sqrt(p_i) and an objective rotation for g_i makes success probability sum_i p_i*g_i; rescaling recovers the original expectation. The circuit never reads the weighted mean.

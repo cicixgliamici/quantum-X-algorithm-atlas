@@ -119,3 +119,9 @@ studies before discussing practical advantage. Licensed under [MIT](LICENSE).
 ## Research milestones
 
 The [comparison protocol](docs/comparison_protocol.md) defines matched absolute-error and confidence targets, access assumptions, cost units and a prespecified replication design.
+
+The [discrete expectation case study](docs/discrete_expectation.md) adds a four-scenario synthetic payoff with exact expectation 13. Its quantum circuit encodes individual distribution/function entries; the exact weighted mean is only a validation reference.
+
+```powershell
+python -m qaa.benchmarks.discrete_expectation --output results/discrete.json
+```

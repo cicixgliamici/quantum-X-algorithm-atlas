@@ -86,6 +86,24 @@ def estimate_bernoulli_amplitude(
     shots: int = 256,
     seed: int | None = None,
 ) -> AmplitudeEstimationResult:
+    """Estimate a known Bernoulli amplitude using the shared IQAE runner."""
+    return estimate_amplitude(
+        bernoulli_problem(target_probability),
+        epsilon_target=epsilon_target,
+        alpha=alpha,
+        shots=shots,
+        seed=seed,
+    )
+
+
+def estimate_amplitude(
+    problem: EstimationProblem,
+    *,
+    epsilon_target: float = 0.03,
+    alpha: float = 0.05,
+    shots: int = 256,
+    seed: int | None = None,
+) -> AmplitudeEstimationResult:
     """Run Qiskit's iterative QAE using reproducible finite-shot simulation.
 
     epsilon_target is an absolute confidence-interval half-width; alpha is
@@ -97,7 +115,6 @@ def estimate_bernoulli_amplitude(
     probability(alpha, "alpha")
     if not 0 < epsilon_target <= 0.5 or not 0 < alpha < 1:
         raise ValueError("require 0 < epsilon_target <= 0.5 and 0 < alpha < 1")
-    problem = bernoulli_problem(target_probability)
     # A persistent stream avoids resetting identical measurement draws each round.
     sampler = StatevectorSampler(default_shots=int(shots), seed=np.random.default_rng(seed))
     algorithm = IterativeAmplitudeEstimation(epsilon_target, alpha, sampler=sampler)
