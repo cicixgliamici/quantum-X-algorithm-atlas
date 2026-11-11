@@ -93,7 +93,14 @@ quantum = estimate_discrete_expectation(problem, epsilon_target=0.03, seed=42)
 print(problem.exact_expectation, classical.estimate, quantum.estimate)
 ```
 
-The JSON records input tables, exact reference, targets, independent method seeds and original-unit results. Quantum extras are optional. The estimation timer excludes problem construction and post-run resource inspection.
+The JSON includes input tables, direct-sum reference, targets, environment, distinct
+method seeds, classical statistics and the original-unit quantum result with its
+nested amplitude diagnostics. Quantum extras remain optional. Missing extras are
+reported as unavailable; runtime failures propagate. Quantum seeds use a persistent
+stream across adaptive iterations. Construction, estimation, resource inspection
+and total wrapper duration are recorded separately. The nested estimation timer
+retains its existing boundary; the [oracle-cost study](oracle_cost.md) documents
+the full timing ledger and the new weighted logical gate/preparation counts.
 
 ## What this demonstrates and what remains
 
@@ -106,7 +113,9 @@ Explicit tables are already known to the host. Direct summation takes O(m) and
 is preferable for this tiny problem. General state loading and one conditional
 rotation per table entry have substantial costs; the construction is not a claim
 of efficient loading in log(m) or of end-to-end advantage. This is a transparent
-lookup implementation, not a scalable arithmetic payoff oracle. A future study must measure loading, construction and circuit costs as input sizes grow.
+lookup implementation, not a scalable arithmetic payoff oracle. The
+[oracle-cost study](oracle_cost.md) now measures loading, construction and circuit
+resources as m grows for dense synthetic tables.
 
 The new runner is one calibration per method, with its own recorded seed mapping.
 It does not execute or alter the Bernoulli grid in protocol `mc-iqae-v1`.

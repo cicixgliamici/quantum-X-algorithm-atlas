@@ -73,6 +73,10 @@ def test_iqae_original_units_and_reproducibility(problem):
     original = asdict(result)
     repeated["amplitude_result"].pop("elapsed_seconds")
     original["amplitude_result"].pop("elapsed_seconds")
+    for record in (original, repeated):
+        record["amplitude_result"].pop("resource_inspection_seconds")
+        record.pop("problem_construction_seconds")
+        record.pop("total_elapsed_seconds")
     assert original == repeated
 
 

@@ -33,6 +33,16 @@ def test_qae_accuracy_and_resources(p):
         resource.grover_power * result.shots_per_circuit for resource in result.circuits
     )
     assert result.state_preparation_calls == result.total_shots + 2 * result.grover_queries
+    assert result.forward_state_preparation_calls == result.total_shots + result.grover_queries
+    assert result.inverse_state_preparation_calls == result.grover_queries
+    assert result.logical_gate_applications == sum(
+        c.gate_count * result.shots_per_circuit for c in result.circuits
+    )
+    assert result.logical_gate_applications == (
+        result.logical_single_qubit_gate_applications + result.logical_two_qubit_gate_applications
+    )
+    assert result.max_circuit_depth == max(c.depth for c in result.circuits)
+    assert result.resource_inspection_seconds >= 0
     assert all(c.qubits == 1 and c.depth > 0 and c.gate_count > 0 for c in result.circuits)
     assert all(c.measurement_count == 1 for c in result.circuits)
     assert result.circuits[0].grover_power == 0
@@ -46,6 +56,8 @@ def test_reproducibility():
     second = asdict(estimate_bernoulli_amplitude(0.3, seed=17))
     first.pop("elapsed_seconds")
     second.pop("elapsed_seconds")
+    first.pop("resource_inspection_seconds")
+    second.pop("resource_inspection_seconds")
     assert first == second
 
 

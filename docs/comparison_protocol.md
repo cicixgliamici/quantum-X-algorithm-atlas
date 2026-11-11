@@ -182,9 +182,9 @@ evidence of superiority over the best available classical method.
 | Full grid and replication runner | Not yet implemented |
 | Classical Hoeffding intervals | Implemented in the discrete runner |
 | Coverage/RMSE aggregation and Wilson intervals | Not yet implemented |
-| Separate A/A-inverse and weighted gate totals | Specified; not yet exported |
+| Separate A/A-inverse and weighted gate totals | Implemented |
 | Discrete P/f preparation | Implemented |
-| Preparation-cost study across input sizes | Future extension |
+| Preparation-cost study across input sizes | Implemented |
 | Generated scientific report and plots | Future stage |
 
 The full study is complete only when the grid is executed without selective

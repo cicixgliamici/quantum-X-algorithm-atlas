@@ -33,3 +33,5 @@ Share result fields or interfaces only after their mathematical meanings match.
 Avoid forcing matrix algorithms or compilers into a Monte Carlo-shaped API.
 
 The immutable `problems/discrete.py` tables are shared by the classical sampler and the quantum discrete adapter. A shared IQAE runner preserves normalized diagnostics while the discrete result restores original units.
+
+`quantum/resources.py` fixes a common u/cx decomposition. The discrete builder exposes P, F, A, A inverse and reflections to both IQAE and the oracle profiler. Fixed-power probes are compiled without sampling; optional IQAE is a separate workload.

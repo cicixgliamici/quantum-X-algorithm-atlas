@@ -125,3 +125,9 @@ The [discrete expectation case study](docs/discrete_expectation.md) adds a four-
 ```powershell
 python -m qaa.benchmarks.discrete_expectation --output results/discrete.json
 ```
+
+The [oracle-cost study](docs/oracle_cost.md) inspects loading, function encoding, A, A inverse, reflections and Grover circuits as table sizes grow. Logical gate totals are weighted by shots, with construction and inspection times separated.
+
+```powershell
+python -m qaa.benchmarks.oracle_cost --with-estimation --output results/oracle-cost.json
+```

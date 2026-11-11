@@ -58,3 +58,5 @@ tests validate selected calibration runs and accounting, not universal coverage.
 The [comparison protocol](comparison_protocol.md) fixes matched precision and confidence targets, stopping rules and distinct resource units.
 
 For discrete inputs, g_i=(f_i-a)/(b-a). Preparing each sqrt(p_i) and an objective rotation for g_i makes success probability sum_i p_i*g_i; rescaling recovers the original expectation. The circuit never reads the weighted mean.
+
+If S is the number of shots and G the logical Grover count, forward A calls are S+G and inverse calls are G. Logical gate applications sum decomposed circuit gate counts weighted by shots; none of these counts is hardware runtime.

@@ -19,6 +19,7 @@ jobs:
       - run: pytest
       - run: qaa-benchmark --output results/smoke.json
       - run: python -m qaa.benchmarks.discrete_expectation --output results/discrete.json
+      - run: python -m qaa.benchmarks.oracle_cost --sizes 2 4 --powers 0 1 --with-estimation --output results/oracle-cost.json
       - uses: actions/upload-artifact@v4
         with:
           name: benchmark-${{ matrix.python }}
@@ -34,3 +35,4 @@ jobs:
       - run: pytest
       - run: qaa-benchmark --output results/classical.json
       - run: python -m qaa.benchmarks.discrete_expectation --output results/discrete-classical.json
+      - run: python -m qaa.benchmarks.oracle_cost --sizes 2 --output results/oracle-unavailable.json

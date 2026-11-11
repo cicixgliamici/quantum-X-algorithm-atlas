@@ -25,3 +25,5 @@ before generalized framework abstractions are introduced.
 The [comparison protocol](comparison_protocol.md) defines matched absolute-error and confidence targets, access assumptions, cost units and a prespecified replication design.
 
 The [discrete expectation case study](discrete_expectation.md) adds a four-scenario synthetic payoff with exact expectation 13. Its quantum circuit encodes individual distribution/function entries; the exact weighted mean is only a validation reference.
+
+The [oracle-cost study](oracle_cost.md) inspects loading, function encoding, A, A inverse, reflections and Grover circuits as table sizes grow. Logical gate totals are weighted by shots, with construction and inspection times separated.

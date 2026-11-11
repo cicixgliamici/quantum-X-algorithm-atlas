@@ -1,6 +1,6 @@
-"""Iterative QAE for a known Bernoulli calibration circuit, not unknown data."""
+"""Reusable iterative QAE execution and a known Bernoulli calibration circuit."""
 
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 from time import perf_counter
 
 import numpy as np
@@ -10,20 +10,17 @@ from qiskit.primitives import StatevectorSampler
 from qiskit_algorithms import EstimationProblem, IterativeAmplitudeEstimation
 
 from qaa._validation import positive_integer, probability, validate_seed
+from qaa.quantum.resources import CircuitMetrics, measure_circuit
 
 
 @dataclass(frozen=True)
-class CircuitResources:
+class CircuitResources(CircuitMetrics):
     """Logical resources after decomposition to u/cx, including measurements.
 
     These are circuit descriptions, not backend-transpiled hardware costs.
     """
 
     grover_power: int
-    qubits: int
-    depth: int
-    gate_count: int
-    measurement_count: int
 
 
 @dataclass(frozen=True)
@@ -39,7 +36,14 @@ class AmplitudeEstimationResult:
     total_shots: int
     grover_queries: int
     state_preparation_calls: int
+    forward_state_preparation_calls: int
+    inverse_state_preparation_calls: int
+    logical_gate_applications: int
+    logical_single_qubit_gate_applications: int
+    logical_two_qubit_gate_applications: int
+    max_circuit_depth: int
     elapsed_seconds: float
+    resource_inspection_seconds: float
     seed: int | None
     circuits: tuple[CircuitResources, ...]
     method: str = "iterative_amplitude_estimation"
@@ -63,19 +67,7 @@ def bernoulli_problem(target_probability: float) -> EstimationProblem:
 
 def circuit_resources(circuit: QuantumCircuit, power: int) -> CircuitResources:
     """Use a common logical basis so composite Q gates do not count as one gate."""
-    from qiskit import transpile
-
-    expanded = transpile(circuit, basis_gates=["u", "cx"], optimization_level=0)
-    operations = expanded.count_ops()
-    measurements = int(operations.get("measure", 0))
-    return CircuitResources(
-        int(power),
-        expanded.num_qubits,
-        expanded.depth(),
-        # Barriers are scheduling directives, not physical or logical gates.
-        int(sum(count for name, count in operations.items() if name not in {"measure", "barrier"})),
-        measurements,
-    )
+    return CircuitResources(grover_power=int(power), **asdict(measure_circuit(circuit)))
 
 
 def estimate_bernoulli_amplitude(
@@ -86,7 +78,7 @@ def estimate_bernoulli_amplitude(
     shots: int = 256,
     seed: int | None = None,
 ) -> AmplitudeEstimationResult:
-    """Estimate a known Bernoulli amplitude using the shared IQAE runner."""
+    """Estimate a known Bernoulli calibration amplitude using the shared runner."""
     return estimate_amplitude(
         bernoulli_problem(target_probability),
         epsilon_target=epsilon_target,
@@ -123,6 +115,7 @@ def estimate_amplitude(
     elapsed = perf_counter() - started
     # Qiskit's powers begins with a sentinel zero, before any circuit is run.
     powers = result.powers[1:]
+    inspection_started = perf_counter()
     resources = tuple(
         circuit_resources(algorithm.construct_circuit(problem, k, measurement=True), k)
         for k in powers
@@ -140,7 +133,18 @@ def estimate_amplitude(
         grover_queries=queries,
         # Each Q uses A and A^-1, plus one initial A per shot.
         state_preparation_calls=total_shots + 2 * queries,
+        forward_state_preparation_calls=total_shots + queries,
+        inverse_state_preparation_calls=queries,
+        logical_gate_applications=int(shots) * sum(c.gate_count for c in resources),
+        logical_single_qubit_gate_applications=(
+            int(shots) * sum(c.single_qubit_gate_count for c in resources)
+        ),
+        logical_two_qubit_gate_applications=(
+            int(shots) * sum(c.two_qubit_gate_count for c in resources)
+        ),
+        max_circuit_depth=max(c.depth for c in resources),
         elapsed_seconds=elapsed,
+        resource_inspection_seconds=perf_counter() - inspection_started,
         seed=seed,
         circuits=resources,
     )
