@@ -54,3 +54,5 @@ tests validate selected calibration runs and accounting, not universal coverage.
 - Brassard et al., [Quantum Amplitude Amplification and Estimation](https://arxiv.org/abs/quant-ph/0005055).
 - Grinko et al., [Iterative Quantum Amplitude Estimation](https://arxiv.org/abs/1912.05559).
 - [Qiskit IQAE implementation and documentation](https://qiskit-community.github.io/qiskit-algorithms/_modules/qiskit_algorithms/amplitude_estimators/iae.html).
+
+The [comparison protocol](comparison_protocol.md) fixes matched precision and confidence targets, stopping rules and distinct resource units.

@@ -21,3 +21,5 @@ state preparation and function evaluation, then repeated-trial accuracy and quer
 budgets. Hardware/noise studies should follow a defensible cost model. Each later
 case study needs classical references, analytical examples and documented limits
 before generalized framework abstractions are introduced.
+
+The [comparison protocol](comparison_protocol.md) defines matched absolute-error and confidence targets, access assumptions, cost units and a prespecified replication design.

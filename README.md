@@ -115,3 +115,7 @@ The implementation follows the official
 and [result contract](https://qiskit-community.github.io/qiskit-algorithms/stubs/qiskit_algorithms.IterativeAmplitudeEstimationResult.html).
 Future work should evaluate nontrivial loading/oracles and repeated-trial resource
 studies before discussing practical advantage. Licensed under [MIT](LICENSE).
+
+## Research milestones
+
+The [comparison protocol](docs/comparison_protocol.md) defines matched absolute-error and confidence targets, access assumptions, cost units and a prespecified replication design.
