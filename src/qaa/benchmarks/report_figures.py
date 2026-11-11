@@ -18,8 +18,18 @@ from matplotlib.ticker import NullLocator  # noqa: E402
 METHODS = {"classical": ("Monte Carlo", "#245a81", "o"), "quantum": ("IQAE", "#b55324", "s")}
 
 
+def panel_key(cell: dict) -> float | str:
+    """Group finite problems by identity, never by coincident normalized means."""
+    return cell["problem_id"] if "problem_id" in cell else cell["probability"]
+
+
+def panel_title(key: float | str) -> str:
+    """Keep original Bernoulli labels and use explicit payoff names for discrete data."""
+    return key.replace("_", " ") if isinstance(key, str) else f"p = {key:g}"
+
+
 def grid_cells(
-    summary: dict, method: str | None = None, probability: float | None = None
+    summary: dict, method: str | None = None, probability: float | str | None = None
 ) -> list[dict]:
     """Keep endpoint controls out of precision plots and preserve actual missing cells."""
     return sorted(
@@ -28,7 +38,7 @@ def grid_cells(
             for cell in summary["cells"]
             if cell["kind"] == "grid"
             and (method is None or cell["method"] == method)
-            and (probability is None or cell["probability"] == probability)
+            and (probability is None or panel_key(cell) == probability)
         ),
         key=lambda cell: cell["epsilon"],
         reverse=True,
@@ -36,8 +46,8 @@ def grid_cells(
 
 
 def panel_grid(summary: dict):
-    """Use one panel per probability, including incomplete and classical-only studies."""
-    probabilities = sorted({cell["probability"] for cell in grid_cells(summary)})
+    """Use one panel per problem, including incomplete and classical-only studies."""
+    probabilities = sorted({panel_key(cell) for cell in grid_cells(summary)})
     columns = min(2, len(probabilities))
     rows = math.ceil(len(probabilities) / columns)
     figure, axes = plt.subplots(rows, columns, figsize=(5.4 * columns, 3.6 * rows), squeeze=False)
@@ -100,20 +110,28 @@ def rmse_figure(summary: dict):
             [c["epsilon"] for c in classical],
             [
                 math.sqrt(
-                    probability
-                    * (1 - probability)
+                    (c["iid_variance"] if "problem_id" in c else probability * (1 - probability))
                     / c["costs_conditional_on_completion"]["sample_count"]["median"]
                 )
                 for c in classical
             ],
             color="#68717b",
             linestyle="--",
+            marker="x",
             label="Analytical IID MC RMSE",
         )
-        axis.plot(epsilons, epsilons, color="#363d44", linestyle=":", label="ε reference")
+        targets = [
+            next(c.get("absolute_error_target", epsilon) for c in cells if c["epsilon"] == epsilon)
+            for epsilon in epsilons
+        ]
+        # Markers retain reference values even in pilots with a single precision target.
+        axis.plot(
+            epsilons, targets, color="#363d44", linestyle=":", marker="D", label="Absolute target"
+        )
         axis.set_yscale("log")
-        axis.set_title(f"p = {probability:g}")
-        precision_axis(axis, epsilons, "RMSE (log scale)")
+        axis.set_title(panel_title(probability))
+        units = "payoff units" if isinstance(probability, str) else "probability units"
+        precision_axis(axis, epsilons, f"RMSE in {units} (log scale)")
     finish_figure(figure, "Estimation error by precision target")
     return figure
 
@@ -148,7 +166,7 @@ def rate_figure(summary: dict, event: str, alpha: float):
                 lower_limits.extend(limits[0])
         axis.axhline(1 - alpha, color="#363d44", linestyle="--", label="Nominal 1 − α")
         axis.set_ylim(max(0, min(lower_limits) - 0.04), 1.015)
-        axis.set_title(f"p = {probability:g}")
+        axis.set_title(panel_title(probability))
         precision_axis(
             axis,
             [c["epsilon"] for c in grid_cells(summary, probability=probability)],
@@ -170,7 +188,7 @@ def cost_figure(summary: dict):
         ("quantum", "max_circuit_depth", "Maximum circuit depth"),
     )
     figure, axes = plt.subplots(3, 2, figsize=(10.8, 10.2))
-    probabilities = sorted({c["probability"] for c in grid_cells(summary)})
+    probabilities = sorted({panel_key(c) for c in grid_cells(summary)})
     colors = plt.get_cmap("viridis")(np.linspace(0.1, 0.8, len(probabilities)))
     for axis, (method, metric, label) in zip(axes.flat, metrics, strict=True):
         has_data = False
@@ -201,7 +219,7 @@ def cost_figure(summary: dict):
                 color=color,
                 marker="o",
                 capsize=3,
-                label=f"p = {probability:g}",
+                label=panel_title(probability),
             )
         precision_axis(axis, [c["epsilon"] for c in grid_cells(summary)], label)
         axis.set_ylim(bottom=0)

@@ -2,11 +2,27 @@
 
 from collections.abc import Iterator
 from dataclasses import asdict, dataclass
+from typing import Protocol
 
 import numpy as np
 
 from qaa._validation import positive_integer, probability, validate_seed
 from qaa.benchmarks.discrete_expectation import hoeffding_sample_count
+
+
+class ReplicationDesign(Protocol):
+    """Share execution and seed planning without imposing a common problem model."""
+
+    replications: int
+    alpha: float
+    shots: int
+    seed: int
+
+    @property
+    def cells(self) -> list[dict]: ...
+
+    @property
+    def methods(self) -> tuple[str, ...]: ...
 
 
 @dataclass(frozen=True)
@@ -67,7 +83,7 @@ class StudyDesign:
         return "primary" if asdict(self) == asdict(StudyDesign()) else "pilot"
 
 
-def trial_plan(design: StudyDesign) -> Iterator[dict]:
+def trial_plan(design: ReplicationDesign) -> Iterator[dict]:
     """Yield deterministic IDs and uint64 seeds in protocol order, without RNG reuse."""
     cell_streams = np.random.SeedSequence(design.seed).spawn(len(design.cells))
     trial_id = 0

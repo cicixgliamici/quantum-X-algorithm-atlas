@@ -108,6 +108,17 @@ The [discrete expectation case study](docs/discrete_expectation.md) adds a synth
 four-scenario payoff (exact expectation 13), explicit distribution/function encoding,
 and a single-run comparison with matched Hoeffding/IQAE accuracy targets.
 
+The [replicated discrete-payoff study](docs/discrete_study.md) extends calibration
+to call, rare-event and signed payoffs, with separate constant controls. Its fixed
+4,400-attempt design reports error and coverage in original payoff units, archives
+input tables, and exports a dedicated scientific report through the same generator.
+
+```powershell
+python -m qaa.benchmarks.discrete_study run --output results/discrete-study
+python -m qaa.benchmarks.discrete_study analyze results/discrete-study
+python -m qaa.benchmarks.scientific_report results/discrete-study --output results/discrete-study-report
+```
+
 The [oracle-cost study](docs/oracle_cost.md) profiles loading, function encoding,
 preparation/inverse, reflections and Grover gates as table sizes grow. Fixed-power
 probes separate size effects from IQAE's adaptive workload; optional estimation

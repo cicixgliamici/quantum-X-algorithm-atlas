@@ -29,6 +29,13 @@ explicitly; a valid incomplete dataset is reported with its actual denominators.
 Classification follows the verified study design, so a pilot never becomes a
 primary result by changing a report label.
 
+The same command also supports `discrete-iqae-v1` archives from the
+[discrete-payoff study](discrete_study.md). It generates payoff-specific sections,
+original-unit errors and intervals, and separate panels per nonconstant payoff.
+The analytical MC RMSE curve uses the actual payoff variance. Constant controls
+appear in tables, outside precision plots. An optional oracle study remains a
+separate input-size experiment, not a matched resource measurement for each payoff.
+
 ## Delivered artifacts
 
 | Artifact | Purpose |

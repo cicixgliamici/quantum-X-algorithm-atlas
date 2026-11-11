@@ -8,6 +8,8 @@ from importlib.metadata import distributions
 from pathlib import Path
 
 from qaa._validation import positive_integer
+from qaa.benchmarks.discrete_report_sections import build_discrete_sections
+from qaa.benchmarks.discrete_study_design import PROTOCOL_ID
 from qaa.benchmarks.report_rendering import render_html, render_markdown
 from qaa.benchmarks.report_sections import build_sections
 from qaa.benchmarks.statistical_study import read_study
@@ -71,8 +73,8 @@ def file_hashes(directory: Path) -> dict[str, str]:
 def generate_report(study: Path, output: Path, *, oracle_study: Path | None = None) -> dict:
     """Read inputs without rewriting them and refuse to overwrite an existing report."""
     manifest, summary = read_study(study)
-    if manifest["protocol_id"] != "mc-iqae-v1":
-        raise ValueError("only mc-iqae-v1 studies are supported")
+    if manifest["protocol_id"] not in {"mc-iqae-v1", PROTOCOL_ID}:
+        raise ValueError("unsupported study protocol")
     oracle_bytes = oracle_study.read_bytes() if oracle_study else None
     oracle = json.loads(oracle_bytes) if oracle_bytes is not None else None
     if oracle is not None:
@@ -94,11 +96,12 @@ def generate_report(study: Path, output: Path, *, oracle_study: Path | None = No
     if oracle_bytes is not None:
         (output / "data" / "oracle-cost.json").write_bytes(oracle_bytes)
     names = generate_figures(summary, manifest["design"]["alpha"], output / "figures", oracle)
-    sections = build_sections(manifest, summary, oracle)
+    discrete = manifest["protocol_id"] == PROTOCOL_ID
+    sections = (build_discrete_sections if discrete else build_sections)(manifest, summary, oracle)
     (output / "report.md").write_text(render_markdown(sections), encoding="utf-8")
     (output / "report.html").write_text(render_html(sections, output), encoding="utf-8")
     result = {
-        "report_id": "mc-iqae-report-v1",
+        "report_id": "discrete-iqae-report-v1" if discrete else "mc-iqae-report-v1",
         "classification": summary["classification"],
         "completed_trials": summary["completed_trials"],
         "planned_trials": summary["planned_trials"],

@@ -7,7 +7,7 @@ from statistics import NormalDist
 import numpy as np
 
 from qaa._validation import positive_integer
-from qaa.benchmarks.study_design import StudyDesign, trial_plan
+from qaa.benchmarks.study_design import ReplicationDesign, trial_plan
 
 
 def wilson_interval(successes: int, trials: int) -> tuple[float, float] | None:
@@ -101,25 +101,27 @@ def cell_summary(cell: dict, method: str, records: list[dict], replications: int
 
 def validate_completed_record(record: dict) -> None:
     """Check accuracy indicators against the recorded estimate, not just stored flags."""
-    estimate, probability = record["estimate"], record["probability"]
+    estimate = record["estimate"]
+    truth = record["exact_expectation"] if "problem_id" in record else record["probability"]
+    lower, upper = record.get("bounds", (0.0, 1.0))
     low, high = record["confidence_interval"]
     if not all(math.isfinite(v) for v in (estimate, low, high)):
         raise ValueError("completed record contains nonfinite values")
-    if not 0 <= low <= estimate <= high <= 1:
+    if not lower <= low <= estimate <= high <= upper:
         raise ValueError("completed record has an invalid confidence interval")
-    error = estimate - probability
+    error = estimate - truth
     checks = {
         "signed_error": error,
         "absolute_error": abs(error),
-        "within_tolerance": abs(error) <= record["epsilon"],
-        "interval_contains_truth": low <= probability <= high,
+        "within_tolerance": abs(error) <= record.get("absolute_error_target", record["epsilon"]),
+        "interval_contains_truth": low <= truth <= high,
         "interval_width": high - low,
     }
     if any(record[k] != value for k, value in checks.items()):
         raise ValueError("completed record has inconsistent accuracy diagnostics")
 
 
-def summarize_records(design: StudyDesign, records: list[dict]) -> dict:
+def summarize_records(design: ReplicationDesign, records: list[dict]) -> dict:
     """Reject duplicate or mismatched trials instead of silently changing the design."""
     expected = {r["trial_id"]: r for r in trial_plan(design)}
     seen = set()

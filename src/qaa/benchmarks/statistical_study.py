@@ -12,7 +12,12 @@ from importlib.metadata import distributions
 from pathlib import Path
 from time import perf_counter
 
-from qaa.benchmarks.discrete_expectation import hoeffding_sample_count
+from qaa.benchmarks.discrete_expectation import classical_record, hoeffding_sample_count
+from qaa.benchmarks.discrete_study_design import (
+    PROTOCOL_ID,
+    DiscreteStudyDesign,
+    study_problem,
+)
 from qaa.benchmarks.monte_carlo import dependency_versions
 from qaa.benchmarks.study_archive import archive_source, verify_source_archive, write_json
 from qaa.benchmarks.study_design import StudyDesign, trial_plan
@@ -31,6 +36,47 @@ QUANTUM_COST_FIELDS = (
     "logical_two_qubit_gate_applications",
     "max_circuit_depth",
 )
+
+Study = StudyDesign | DiscreteStudyDesign
+
+
+def discrete_classical_estimate(trial: dict, design: DiscreteStudyDesign) -> dict:
+    """Use the declared range for the budget, never the observed sample variance."""
+    result = classical_record(
+        study_problem(trial["problem_id"]), trial["epsilon"], design.alpha, trial["seed"]
+    )
+    return {
+        "estimate": result["estimate"],
+        "confidence_interval": result["confidence_interval"],
+        "costs": {"sample_count": result["sample_count"]},
+        "timings": {"estimation_seconds": result["elapsed_seconds"]},
+        "estimator_result": result,
+    }
+
+
+def discrete_quantum_estimate(trial: dict, design: DiscreteStudyDesign) -> dict:
+    """Keep original-unit outputs and the complete normalized IQAE resource ledger."""
+    from qaa.quantum.discrete_expectation import estimate_discrete_expectation
+
+    result = estimate_discrete_expectation(
+        study_problem(trial["problem_id"]),
+        epsilon_target=trial["epsilon"],
+        alpha=design.alpha,
+        shots=design.shots,
+        seed=trial["seed"],
+    )
+    record = quantum_diagnostics(result.amplitude_result, design.shots)
+    return {
+        **record,
+        "estimate": result.estimate,
+        "confidence_interval": result.confidence_interval,
+        "timings": {
+            **record["timings"],
+            "problem_construction_seconds": result.problem_construction_seconds,
+            "total_elapsed_seconds": result.total_elapsed_seconds,
+        },
+        "estimator_result": asdict(result),
+    }
 
 
 def classical_estimate(trial: dict, design: StudyDesign) -> dict:
@@ -61,9 +107,14 @@ def quantum_estimate(trial: dict, design: StudyDesign) -> dict:
         shots=design.shots,
         seed=trial["seed"],
     )
-    if result.grover_queries != design.shots * sum(c.grover_power for c in result.circuits):
+    return quantum_diagnostics(result, design.shots)
+
+
+def quantum_diagnostics(result, shots: int) -> dict:
+    """Check the same shot and query identities for both quantum problem families."""
+    if result.grover_queries != shots * sum(c.grover_power for c in result.circuits):
         raise ValueError("IQAE Grover query accounting mismatch")
-    if result.total_shots != design.shots * len(result.circuits):
+    if result.total_shots != shots * len(result.circuits):
         raise ValueError("IQAE shot accounting mismatch")
     return {
         "estimate": result.estimate,
@@ -77,29 +128,38 @@ def quantum_estimate(trial: dict, design: StudyDesign) -> dict:
     }
 
 
-def validate_result(result: dict) -> None:
+def validate_result(result: dict, bounds: tuple | list = (0.0, 1.0)) -> None:
     """An invalid numerical result is a failed trial, never a successful missing value."""
     estimate = result["estimate"]
     interval = result["confidence_interval"]
     if len(interval) != 2 or not all(math.isfinite(v) for v in (estimate, *interval)):
         raise ValueError("estimate and confidence interval must be finite")
-    if not 0 <= interval[0] <= estimate <= interval[1] <= 1:
-        raise ValueError("estimate must lie in an ordered confidence interval within [0,1]")
+    if not bounds[0] <= interval[0] <= estimate <= interval[1] <= bounds[1]:
+        raise ValueError("estimate must lie in an ordered confidence interval within bounds")
     if not all(math.isfinite(v) and v >= 0 for v in result["costs"].values()):
         raise ValueError("costs must be finite and nonnegative")
 
 
-def execute_trial(trial: dict, design: StudyDesign) -> dict:
+def execute_trial(trial: dict, design: Study) -> dict:
     """Never retry failed seeds; only missing quantum extras are unavailable."""
     started = perf_counter()
     record = {"schema_version": 1, **trial}
     try:
-        estimator = classical_estimate if trial["method"] == "classical" else quantum_estimate
+        if isinstance(design, DiscreteStudyDesign):
+            estimator = (
+                discrete_classical_estimate
+                if trial["method"] == "classical"
+                else discrete_quantum_estimate
+            )
+        else:
+            estimator = classical_estimate if trial["method"] == "classical" else quantum_estimate
         result = estimator(trial, design)
-        validate_result(result)
+        validate_result(result, trial.get("bounds", (0.0, 1.0)))
         # Validate nested diagnostics too, before classifying the attempt as completed.
         json.dumps(result, allow_nan=False)
-        signed_error = result["estimate"] - trial["probability"]
+        truth = trial["exact_expectation"] if "problem_id" in trial else trial["probability"]
+        tolerance = trial.get("absolute_error_target", trial["epsilon"])
+        signed_error = result["estimate"] - truth
         low, high = result["confidence_interval"]
         record.update(
             {
@@ -107,8 +167,8 @@ def execute_trial(trial: dict, design: StudyDesign) -> dict:
                 **result,
                 "signed_error": signed_error,
                 "absolute_error": abs(signed_error),
-                "within_tolerance": abs(signed_error) <= trial["epsilon"],
-                "interval_contains_truth": low <= trial["probability"] <= high,
+                "within_tolerance": abs(signed_error) <= tolerance,
+                "interval_contains_truth": low <= truth <= high,
                 "interval_width": high - low,
             }
         )
@@ -130,18 +190,24 @@ def execute_trial(trial: dict, design: StudyDesign) -> dict:
     return record
 
 
-def initial_manifest(design: StudyDesign, provenance: dict) -> dict:
+def initial_manifest(design: Study, provenance: dict) -> dict:
     """Persist settings and frozen sources before generating any observations."""
     return {
         "schema_version": 1,
-        "protocol_id": "mc-iqae-v1",
+        "protocol_id": PROTOCOL_ID if isinstance(design, DiscreteStudyDesign) else "mc-iqae-v1",
         "classification": design.classification,
         "design": asdict(design),
         "cells": design.cells,
         "methods": design.methods,
         "planned_trials": len(design.cells) * len(design.methods) * design.replications,
         "iqae_settings": {"confint_method": "beta", "min_ratio": 2},
-        "classical_settings": {"budget": "Hoeffding", "sampling": "IID NumPy binomial"},
+        "classical_settings": {
+            "budget": "Hoeffding",
+            "sampling": "IID NumPy choice"
+            if isinstance(design, DiscreteStudyDesign)
+            else "IID NumPy binomial",
+        },
+        **({"problems": design.problems} if isinstance(design, DiscreteStudyDesign) else {}),
         "resource_limits": None,
         "environment": {
             "python": platform.python_version(),
@@ -166,9 +232,17 @@ def read_study(directory: Path) -> tuple[dict, dict]:
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
     verify_source_archive(directory, manifest["provenance"]["source_sha256"])
     settings = dict(manifest["design"])
-    for name in ("probabilities", "epsilons"):
+    discrete = manifest["protocol_id"] == PROTOCOL_ID
+    if manifest["protocol_id"] not in {PROTOCOL_ID, "mc-iqae-v1"}:
+        raise ValueError("unsupported study protocol")
+    for name in ("payoffs", "epsilons") if discrete else ("probabilities", "epsilons"):
         settings[name] = tuple(settings[name])
-    design = StudyDesign(**settings)
+    design = DiscreteStudyDesign(**settings) if discrete else StudyDesign(**settings)
+    if discrete:
+        # JSON canonicalization reconciles immutable table tuples with saved arrays.
+        expected_problems = json.loads(json.dumps(design.problems))
+        if manifest["problems"] != expected_problems or manifest["cells"] != design.cells:
+            raise ValueError("discrete tables or cells differ from the registered design")
     # An incomplete trailing JSON line is an explicit error, never silently dropped.
     raw_bytes = (directory / "trials.jsonl").read_bytes()
     digest = hashlib.sha256(raw_bytes).hexdigest()
@@ -193,7 +267,7 @@ def analyze_study(directory: Path) -> dict:
 
 
 def run_study(
-    output: Path, design: StudyDesign, *, progress: Callable[[str], None] | None = None
+    output: Path, design: Study, *, progress: Callable[[str], None] | None = None
 ) -> dict:
     """Append and flush each attempted trial; refuse to overwrite any existing study."""
     output.mkdir(parents=True, exist_ok=False)

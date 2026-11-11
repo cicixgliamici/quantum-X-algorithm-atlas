@@ -36,7 +36,9 @@ The [scientific report generator](scientific_report.md) now exports English HTML
 and Markdown, standalone PNG/SVG figures, numerical tables and reporting provenance
 from verified study artifacts, with optional separate oracle-cost results.
 
-Next scientific questions include replicated discrete-payoff coverage and
+The [discrete replication study](discrete_study.md) now implements coverage and
+original-unit accuracy across call, rare-event and signed payoffs plus controls.
+Next scientific questions include stronger classical confidence baselines and
 structured reversible function evaluation. Hardware/noise studies should follow a
 defensible cost model. Each later
 case study needs classical references, analytical examples and documented limits

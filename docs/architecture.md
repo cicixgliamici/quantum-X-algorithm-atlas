@@ -42,6 +42,15 @@ and raw-record reanalysis). Each attempt is flushed before continuing. Estimator
 exceptions become explicit failed/unavailable records; a missing record remains
 unresolved. Reanalysis never invokes an estimator or invents observations.
 
+The [discrete replication protocol](discrete_study.md) adds
+`discrete_study_design.py` for versioned payoff tables and original-unit cells,
+and `discrete_study.py` for its CLI. A small `ReplicationDesign` interface shares
+seed planning and aggregation; estimator adapters retain each problem's units.
+The shared archive reader dispatches by protocol ID and validates saved discrete
+tables. Historical Bernoulli manifests and seeds remain supported.
+`discrete_report_sections.py` supplies payoff-specific explanations and tables;
+the common figures group by problem identity and use exact payoff variance.
+
 The read-only `read_study` path also serves reporting. `scientific_report.py`
 verifies inputs, archives the reporting source and orchestrates export.
 `report_sections.py` owns shared narrative/tables, `report_figures.py` owns static

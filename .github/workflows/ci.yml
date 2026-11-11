@@ -22,6 +22,9 @@ jobs:
       - run: python -m qaa.benchmarks.oracle_cost --sizes 2 4 --powers 0 1 --with-estimation --output results/oracle-cost.json
       - run: python -m qaa.benchmarks.statistical_study run --probabilities 0.3 --epsilons 0.1 --replications 2 --output results/statistical-pilot
       - run: python -m qaa.benchmarks.statistical_study analyze results/statistical-pilot
+      - run: python -m qaa.benchmarks.discrete_study run --epsilons 0.1 --replications 2 --output results/discrete-pilot
+      - run: python -m qaa.benchmarks.discrete_study analyze results/discrete-pilot
+      - run: python -m qaa.benchmarks.scientific_report results/discrete-pilot --output results/discrete-report
       - run: python -m qaa.benchmarks.scientific_report results/statistical-pilot --oracle-study results/oracle-cost.json --output results/scientific-report
       - uses: actions/upload-artifact@v4
         with:
@@ -31,6 +34,8 @@ jobs:
           path: |
             results/*.json
             results/statistical-pilot/
+            results/discrete-pilot/
+            results/discrete-report/
             results/scientific-report/
   classical-only:
     runs-on: ubuntu-latest
@@ -45,4 +50,7 @@ jobs:
       - run: python -m qaa.benchmarks.discrete_expectation --output results/discrete-classical.json
       - run: python -m qaa.benchmarks.oracle_cost --sizes 2 --output results/oracle-unavailable.json
       - run: python -m qaa.benchmarks.statistical_study run --probabilities 0.3 --epsilons 0.1 --replications 2 --classical-only --output results/statistical-classical
+      - run: python -m qaa.benchmarks.discrete_study run --epsilons 0.1 --replications 2 --classical-only --output results/discrete-classical
+      - run: python -m qaa.benchmarks.discrete_study analyze results/discrete-classical
+      - run: python -m qaa.benchmarks.scientific_report results/discrete-classical --output results/discrete-classical-report
       - run: python -m qaa.benchmarks.scientific_report results/statistical-classical --output results/scientific-classical-report
